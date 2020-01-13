@@ -21,8 +21,8 @@ public class CacheRun {
         System.err.println("Hello, please enter a file to read:");
         Scanner scan = new Scanner(System.in);  // Take input
         String configFile = scan.nextLine();    // Read and store input
-        System.out.println("Please enter associativity: \n");
-        int associativity = scan.nextInt();     // Read and store input 
+        //System.out.println("Please enter associativity: \n");
+        //int associativity = scan.nextInt();     // Read and store input 
         
         // Take file name from input, begin reading to create cache
         File configName = new File(configFile); // From input
@@ -35,11 +35,14 @@ public class CacheRun {
         // Now to read the config file
         // Declare variables to be read:
         int configAssociativity = 0;    // 0 by default
+        int blockSize = 0;              // 0 by default
         int cacheSize = 0;              // 0 by default
         String toConvert;
         try{
             toConvert = configInput.readLine();
             configAssociativity = Integer.parseInt(toConvert,16);   // Hex to int
+            toConvert = configInput.readLine();
+            blockSize = Integer.parseInt(toConvert,16);
             toConvert = configInput.readLine();
             cacheSize = Integer.parseInt(toConvert,16);
             
@@ -47,8 +50,10 @@ public class CacheRun {
            ex.printStackTrace();
         }
 
-        Cache cacheSim = new Cache(configAssociativity,cacheSize);  // Create the cache object from config file
+        Cache cacheSim = new Cache(configAssociativity,blockSize,cacheSize);  // Create the cache object from config file
         System.out.println("Jason Guest\n");    // Assignment specificaitons
+        System.out.println("Cache size: " + cacheSim.getSize() + " bytes");
+        System.out.println("Block width: " + cacheSim.getBlockWidth() + " bytes");
         System.out.println("Initial cache state:");
         cacheSim.printCache();  // Print the initial invalid state of the cache
 

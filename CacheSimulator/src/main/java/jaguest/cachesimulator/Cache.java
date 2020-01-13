@@ -2,6 +2,7 @@ package jaguest.cachesimulator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 // TODO: 
 // Fix current status by assignment specs (LRU check)
@@ -25,10 +26,10 @@ public class Cache {
     // TODO: Add cache size variable
     // Attribute variables
     // TODO: Calculate # of blocks by the cache size
-    private int SIZE; // A variable that will be set via JSON file
-    final int BLOCKS = 16; // All begin in INVALID state
+    private int SIZE; // A variable that will be set based on input
+    private int BLOCKS; // All begin in INVALID state
     // TODO: This will probably something set in the JSON config file
-    final int BLOCK_WIDTH = 1; // 1 byte wide, no offset bits
+    private int BLOCK_WIDTH; // 1 byte wide, no offset bits
     private int associativity; // e.g. 4-way (4), 16-way (16)
     // options will be 1,2,4,8,16
 
@@ -53,16 +54,38 @@ public class Cache {
         int mask = (1<<(end-start+1))-1;
         return (value>>>start)&mask;
     }
+    
+    int getSize(){
+        return this.SIZE;
+    }
+    
+    int getBlockWidth(){
+        return this.BLOCK_WIDTH;
+    }
 
     /**
      * Main Cache constructor
      * @param associativity is the defined associativity from user input
+     * @param blockSize is the defined block width from input 
      * return a new Cache object
      */
-    public Cache(int associativity,int size){
-        this.SIZE = size;
-        this.hits = 0; // Initialize hits to 0
-        this.associativity = associativity; // From input
+    public Cache(int associativity,int blockSize,int cacheSize){
+        this.SIZE = cacheSize;                  // Initialize cache size
+        this.BLOCKS = cacheSize / blockSize;    // Find our number of blocks
+        this.BLOCK_WIDTH = blockSize;           // Initialize block width
+        this.hits = 0;                          // Initialize hits to 0
+        this.associativity = associativity;     // Initialize associativity
+        
+        // Perform value checks for provided input
+        if(associativity > this.BLOCKS){
+            System.out.println("Thee associativity cannot be greater than the # of blocks");
+            System.out.println("Blocks available: "+ this.BLOCKS +", Please choose associativity:");
+            Scanner scan = new Scanner(System.in);  // Take input
+            while(this.associativity > this.BLOCKS){
+                this.associativity = scan.nextInt();
+            }
+        }
+        
         this.sets = new Block[BLOCKS/associativity][associativity]; // Creation of sets array
         for(int i = 0;i < sets.length;i++){
             for(int j = 0;j < sets[i].length;j++){
