@@ -11,9 +11,19 @@ public class CPU_Core {
     
     // Here will be the attributes, such as levels of cache
     private Cache Lev1; // This level private to each core
-    public Cache Lev2;  // May be shared
-    public Cache Lev3;  // May be shared
+    private Cache Lev2;  // May be shared
+    private Cache Lev3;  // May be shared
     
+    void setL1(Cache L1){
+        this.Lev1 = L1;
+    }
     
+    void setL2(Cache L2){
+        this.Lev2 = L2;
+    }
+    
+    void setL3(Cache L3){
+        this.Lev3 = L3;
+    }
     
 }

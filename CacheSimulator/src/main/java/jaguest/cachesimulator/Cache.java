@@ -9,11 +9,10 @@ import java.util.Scanner;
 // Add cache levels (L1, L2, L3)funtionality
 // Implement multi-core / threading
 // Add functionality to choose which levels are shared between cores/threads
-// Implement differrent block, cache and line sizes as well as latencies
 //  - latency via delay
 //  - latency via counter
 // Need to also implement a main memory class (as accurate as possible / slow)
-// Read JSON configuration file for setup/layout
+// Read JSON configuration file for setup/layout - using .txt for now
 
 
 /**

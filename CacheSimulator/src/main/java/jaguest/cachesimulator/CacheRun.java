@@ -16,7 +16,7 @@ public class CacheRun {
      */
     public static void main(String args[]) {
 
-        // TODO: Add a prompt for a file to read containing the cache configuration
+       
         //  This will replace the associativity prompt 
         System.err.println("Hello, please enter a file to read:");
         Scanner scan = new Scanner(System.in);  // Take input
@@ -34,17 +34,96 @@ public class CacheRun {
         }
         // Now to read the config file
         // Declare variables to be read:
+        int cores = 0;                  // 0 by default
+        CPU_Core[] coreSim;
+        int L2;                         // 1 yes, 0 no shared L2
+        int L3;                         // 1 yes but not shared, 0 no L3, 2 yes and shared
         int configAssociativity = 0;    // 0 by default
         int blockSize = 0;              // 0 by default
         int cacheSize = 0;              // 0 by default
         String toConvert;
         try{
+            // First handle creation of cores objects
             toConvert = configInput.readLine();
-            configAssociativity = Integer.parseInt(toConvert,16);   // Hex to int
+            cores = Integer.parseInt(toConvert,16);
+            coreSim = new CPU_Core[cores];
+            for(int i = 0; i < coreSim.length;i++){
+                coreSim[i] = new CPU_Core(); // 
+            }
+            
+            // Next we handle L1 caches, not shared
             toConvert = configInput.readLine();
-            blockSize = Integer.parseInt(toConvert,16);
+            configAssociativity = Integer.parseInt(toConvert,16);   // L1 Associativity
             toConvert = configInput.readLine();
-            cacheSize = Integer.parseInt(toConvert,16);
+            blockSize = Integer.parseInt(toConvert,16);             // L1 Block width
+            toConvert = configInput.readLine();
+            cacheSize = Integer.parseInt(toConvert,16);             // L1 size
+            Cache levelOne = new Cache(configAssociativity,blockSize,cacheSize);
+            
+            for(int i = 0;i < coreSim.length;i++){
+                coreSim[i].setL1(levelOne); // Initialize each Level one cache
+            }
+            
+            // Now do the work for Level 2 caches
+            toConvert = configInput.readLine();
+            L2 = Integer.parseInt(toConvert,16);
+            if(L2 == 1){    // Shared Level 2 cache
+                toConvert = configInput.readLine();
+                configAssociativity = Integer.parseInt(toConvert,16);   // L1 Associativity
+                toConvert = configInput.readLine();
+                blockSize = Integer.parseInt(toConvert,16);             // L1 Block width
+                toConvert = configInput.readLine();
+                cacheSize = Integer.parseInt(toConvert,16);             // L1 size
+                Cache levelTwo = new Cache(configAssociativity,blockSize,cacheSize);
+                
+                for(int i= 0; i < coreSim.length;i++){
+                    coreSim[i].setL2(levelTwo); // Initialize all Level two caches
+                }
+            }else{  // Level two cache is not shared
+                // we will have input for L2 sizes enough for each core by assumption
+                for(int i = 0; i < coreSim.length;i++){ // iterate to initialize level two cache
+                    toConvert = configInput.readLine();
+                    configAssociativity = Integer.parseInt(toConvert,16);   // L2 Associativity
+                    toConvert = configInput.readLine();
+                    blockSize = Integer.parseInt(toConvert,16);             // L2 Block width
+                    toConvert = configInput.readLine();
+                    cacheSize = Integer.parseInt(toConvert,16);             // L2 size
+                    coreSim[i].setL2(new Cache(configAssociativity,blockSize,cacheSize));
+                }
+            }
+            
+            // And now for the finale, the Level 3 cache
+            toConvert = configInput.readLine();
+            L3 = Integer.parseInt(toConvert,16);
+            if(L3 == 2){    // Shared Level three cache
+                toConvert = configInput.readLine();
+                configAssociativity = Integer.parseInt(toConvert,16);   // L3 Associativity
+                toConvert = configInput.readLine();
+                blockSize = Integer.parseInt(toConvert,16);             // L3 Block width
+                toConvert = configInput.readLine();
+                cacheSize = Integer.parseInt(toConvert,16);             // L3 size
+                Cache levelThree = new Cache(configAssociativity,blockSize,cacheSize);
+                
+                for(int i = 0;i < coreSim.length;i++){
+                    coreSim[i].setL3(levelThree);   // Initialize all L3 caches
+                }
+            }
+            else if(L3 == 1){   // Level three cache not shared
+                for(int i = 0;i < coreSim.length;i++){  // Iterate to set Level three caches
+                    toConvert = configInput.readLine();
+                    configAssociativity = Integer.parseInt(toConvert,16);   // L3 Associativity
+                    toConvert = configInput.readLine();
+                    blockSize = Integer.parseInt(toConvert,16);             // L3 Block width
+                    toConvert = configInput.readLine();
+                    cacheSize = Integer.parseInt(toConvert,16);             // L3 size
+                    coreSim[i].setL3(new Cache(configAssociativity,blockSize,cacheSize));
+                }
+            }
+            else{
+                // Do nothing, there is no Level three cache
+            }
+            
+            // That wraps up all that should be in the input file
             
         }catch(IOException ex){
            ex.printStackTrace();
