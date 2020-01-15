@@ -1,6 +1,7 @@
 package jaguest.cachesimulator;
 
 import java.io.*;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -35,13 +36,14 @@ public class CacheRun {
         // Now to read the config file
         // Declare variables to be read:
         int cores = 0;                  // 0 by default
-        CPU_Core[] coreSim;
-        int L2;                         // 1 yes, 0 no shared L2
-        int L3;                         // 1 yes but not shared, 0 no L3, 2 yes and shared
+        CPU_Core[] coreSim = null;      // null object by default
+        int L2 = 0;                         // 1 yes, 0 no shared L2, 0 default
+        int L3 = 0;                         // 1 yes but not shared, 0 no L3, 2 yes and shared, 0 default
         int configAssociativity = 0;    // 0 by default
         int blockSize = 0;              // 0 by default
         int cacheSize = 0;              // 0 by default
-        String toConvert;
+        String toConvert;               // variable to hold read data
+        
         try{
             // First handle creation of cores objects
             toConvert = configInput.readLine();
@@ -131,13 +133,25 @@ public class CacheRun {
 
         Cache cacheSim = new Cache(configAssociativity,blockSize,cacheSize);  // Create the cache object from config file
         System.out.println("Jason Guest\n");    // Assignment specificaitons
-        System.out.println("Cache size: " + cacheSim.getSize() + " bytes");
-        System.out.println("Block width: " + cacheSim.getBlockWidth() + " bytes");
-        System.out.println("Initial cache state:");
-        cacheSim.printCache();  // Print the initial invalid state of the cache
+        
+        // Display the specs for our Simulated system
+        System.out.println("Number of cores: " + cores);
+        
+        for(int i = 0;i < cores;i++){   // Display the specs of each core
+            System.out.println("Core " + i + ":");
+            System.out.println("L1 size: " + coreSim[i].getL1().getSize() + " bytes, Block width: " + coreSim[i].getL1().getBlockWidth() + " bytes");
+            System.out.println("L2 size: " + coreSim[i].getL2().getSize() + " bytes, Block width: " + coreSim[i].getL2().getBlockWidth() + " bytes");
+            if(L3 != 0){    // there is an L3 cache
+                System.out.println("L3 size: " + coreSim[i].getL3().getSize() + " bytes, Block width: " + coreSim[i].getL3().getBlockWidth() + " bytes");
+            }
+        }
+        
+        // Commented code below may be used for testing purposes, to print the INVALID cache state
+        //System.out.println("Initial cache state:");
+        //cacheSim.printCache();  // Print the initial invalid state of the cache
 
-        // Open our file
-        File file = new File("trace1.txt"); // This will change with JSON config
+        // Open our file containing data to be processed
+        File file = new File("trace1.txt");
         BufferedReader read = null;
         try {
             read = new BufferedReader(new FileReader(file)); // Create our reader
@@ -145,17 +159,26 @@ public class CacheRun {
             ex.printStackTrace();
         }
         
-        System.out.println("Read file: " + file);
+        System.out.println("Reading input from file: " + file);
 
-        // read the file
+        // read data from the specified file
         String line;    // Object to store what we read
+        int n;          // variable to store random number
+        Random rand = new Random(); // Used to generate random number
         try {
             while ((line = read.readLine()) != null) { // Read while there is something to be read
                 // convert hex string to int for storage in the cache
                 int i = Integer.parseInt(line,16);
-
+                n = rand.nextInt(cores);    // Random number between 0 (inclusive) and the # of cores (exclusive)
+                                            // etc. if we have 6 cores, random # from 0 - 5
+                // To process the data, a simulated clock cycle is used
+                // a Random number generator will pick one of the cores to put 
+                // the data through, and each 'cycle' will do the same til the data
+                // has all been processed
+                
+                
                 // check if there is a hit, perform required actions
-                cacheSim.check(i);
+                coreSim[n].getL1().check(i);    // Data goes to the first cache, and filters to others on a miss
 
                 // Following code for testing purposes
                 //System.out.format("%04X\n",i);

@@ -26,4 +26,16 @@ public class CPU_Core {
         this.Lev3 = L3;
     }
     
+    public Cache getL1(){
+        return this.Lev1;
+    }
+    
+    public Cache getL2(){
+        return this.Lev2;
+    }
+    
+    public Cache getL3(){
+        return this.Lev3;
+    }
+    
 }
