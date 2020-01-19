@@ -13,6 +13,11 @@ public class CPU_Core {
     private Cache Lev1; // This level private to each core
     private Cache Lev2;  // May be shared
     private Cache Lev3;  // May be shared
+    private int numLevels; // tracks number of caches available
+    
+    void setNumLevels(int levels){
+        this.numLevels = levels;
+    }
     
     void setL1(Cache L1){
         this.Lev1 = L1;
@@ -36,6 +41,10 @@ public class CPU_Core {
     
     public Cache getL3(){
         return this.Lev3;
+    }
+    
+    public int getNumCaches(){
+        return this.numLevels;
     }
     
 }

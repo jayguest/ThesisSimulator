@@ -64,6 +64,7 @@ public class CacheRun {
             
             for(int i = 0;i < coreSim.length;i++){
                 coreSim[i].setL1(levelOne); // Initialize each Level one cache
+                coreSim[i].setNumLevels(1);
             }
             
             // Now do the work for Level 2 caches
@@ -71,15 +72,16 @@ public class CacheRun {
             L2 = Integer.parseInt(toConvert,16);
             if(L2 == 1){    // Shared Level 2 cache
                 toConvert = configInput.readLine();
-                configAssociativity = Integer.parseInt(toConvert,16);   // L1 Associativity
+                configAssociativity = Integer.parseInt(toConvert,16);   // L2 Associativity
                 toConvert = configInput.readLine();
-                blockSize = Integer.parseInt(toConvert,16);             // L1 Block width
+                blockSize = Integer.parseInt(toConvert,16);             // L2 Block width
                 toConvert = configInput.readLine();
-                cacheSize = Integer.parseInt(toConvert,16);             // L1 size
+                cacheSize = Integer.parseInt(toConvert,16);             // L2 size
                 Cache levelTwo = new Cache(configAssociativity,blockSize,cacheSize);
                 
                 for(int i= 0; i < coreSim.length;i++){
                     coreSim[i].setL2(levelTwo); // Initialize all Level two caches
+                    coreSim[i].setNumLevels(2);
                 }
             }else{  // Level two cache is not shared
                 // we will have input for L2 sizes enough for each core by assumption
@@ -91,6 +93,7 @@ public class CacheRun {
                     toConvert = configInput.readLine();
                     cacheSize = Integer.parseInt(toConvert,16);             // L2 size
                     coreSim[i].setL2(new Cache(configAssociativity,blockSize,cacheSize));
+                    coreSim[i].setNumLevels(2);
                 }
             }
             
@@ -108,6 +111,7 @@ public class CacheRun {
                 
                 for(int i = 0;i < coreSim.length;i++){
                     coreSim[i].setL3(levelThree);   // Initialize all L3 caches
+                    coreSim[i].setNumLevels(3);
                 }
             }
             else if(L3 == 1){   // Level three cache not shared
@@ -119,6 +123,7 @@ public class CacheRun {
                     toConvert = configInput.readLine();
                     cacheSize = Integer.parseInt(toConvert,16);             // L3 size
                     coreSim[i].setL3(new Cache(configAssociativity,blockSize,cacheSize));
+                    coreSim[i].setNumLevels(3);
                 }
             }
             else{
@@ -164,6 +169,7 @@ public class CacheRun {
         // read data from the specified file
         String line;    // Object to store what we read
         int n;          // variable to store random number
+        int check;      // variable to store the check for hit or miss
         Random rand = new Random(); // Used to generate random number
         try {
             while ((line = read.readLine()) != null) { // Read while there is something to be read
@@ -178,8 +184,31 @@ public class CacheRun {
                 
                 
                 // check if there is a hit, perform required actions
-                coreSim[n].getL1().check(i);    // Data goes to the first cache, and filters to others on a miss
-
+                check = coreSim[n].getL1().check(i);    // Data goes to the first cache, and filters to others on a miss
+                    
+                if(check == 1){
+                    // cache hit, do nothing
+                }else{
+                    // cache miss, check next level of cache
+                    if(coreSim[n].getNumCaches() > 1){ // there is lev2 available
+                        check = coreSim[n].getL2().check(i);
+                        
+                        if(check == 0){ // miss, look to L3 cache if available
+                            
+                            if(coreSim[n].getNumCaches() > 2){
+                                check = coreSim[n].getL3().check(i); // last check needed, any hit or miss is recorded as usual
+                            }
+                            // if no L3 available, do nothing, it's a normal miss
+                            // will need to implement a latency or penalty in time for main mem access on miss
+                            
+                        }else{
+                            // hit, do nothing
+                        }
+                    }
+                    // No 2 avaialable, it's a miss, do penalty
+                    
+                }
+                
                 // Following code for testing purposes
                 //System.out.format("%04X\n",i);
                 //System.out.println(Integer.parseInt(read.readLine(),16) + "\n");

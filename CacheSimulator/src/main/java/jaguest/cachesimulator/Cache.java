@@ -101,8 +101,9 @@ public class Cache {
      * Method to check if an element is present in the cache
      * This method called before every insertion
      * @param num is the element to search for
+     * @return a 1 for a hit, 0 for a miss
      */
-    public void check(int num){
+    public int check(int num){
 
         // 16 block cache will have 2^n = 16 => 4 bits for the index
         // the rest will be for the tag
@@ -127,6 +128,7 @@ public class Cache {
             if(sets[index][i].getTag() == tag){ // check each tag in sets
                 this.hits++; // inc hit if we find the tag we are looking for
                 //hitUpdate(index,i); // update the LRU queue
+                return 1;
             }
         }
         if(check == this.hits){ // # of hits hasn't changed, item not in cache, miss
@@ -138,7 +140,10 @@ public class Cache {
             }
             update(index,position); // update LRU with the block coordinate
             // We only update LRU on a miss
+            // Send a return value to check the other levels of cache
+            return 0;
         }
+        return 0;
     }
 
     /**
