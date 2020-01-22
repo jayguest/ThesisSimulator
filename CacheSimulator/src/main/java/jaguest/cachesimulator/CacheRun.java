@@ -60,10 +60,9 @@ public class CacheRun {
             blockSize = Integer.parseInt(toConvert,16);             // L1 Block width
             toConvert = configInput.readLine();
             cacheSize = Integer.parseInt(toConvert,16);             // L1 size
-            Cache levelOne = new Cache(configAssociativity,blockSize,cacheSize);
             
             for(int i = 0;i < coreSim.length;i++){
-                coreSim[i].setL1(levelOne); // Initialize each Level one cache
+                coreSim[i].setL1(new Cache(configAssociativity,blockSize,cacheSize)); // Initialize each Level one cache
                 coreSim[i].setNumLevels(1);
             }
             
@@ -185,7 +184,7 @@ public class CacheRun {
                 
                 // check if there is a hit, perform required actions
                 check = coreSim[n].getL1().check(i);    // Data goes to the first cache, and filters to others on a miss
-                    
+                
                 if(check == 1){
                     // cache hit, do nothing
                 }else{
@@ -218,9 +217,14 @@ public class CacheRun {
             ex.printStackTrace();
         }
 
-        cacheSim.printCache();  // Print final state of cache
-        // Print the hits and accesses for this simulation
-        System.out.println("Accesses: " + cacheSim.accesses + " Hits: " + cacheSim.hits);
+        for(int i = 0;i < cores;i++){
+            System.out.println("Core " + i + ": ");
+            System.out.println("L1: Accesses: " + coreSim[i].getL1().accesses + " Hits: " + coreSim[i].getL1().hits);
+            System.out.println("L2: Accesses: " + coreSim[i].getL2().accesses + " Hits: " + coreSim[i].getL2().hits);
+            if(L3 != 0){    // only print if there is an L3 cache
+                System.out.println("L3: Accesses: " + coreSim[i].getL3().accesses + " Hits: " + coreSim[i].getL3().hits);
+            }
+        }
 
     }
 }
