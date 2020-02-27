@@ -32,7 +32,7 @@ public class Block {
         if(this.tag == 12498){
             return "INVL";
         }else{
-            return String.format("%04X",this.tag);
+            return String.format("%08X",this.tag);
         }
     }
 }

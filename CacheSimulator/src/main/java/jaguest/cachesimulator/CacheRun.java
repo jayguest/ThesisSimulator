@@ -50,7 +50,7 @@ public class CacheRun {
             cores = Integer.parseInt(toConvert,16);
             coreSim = new CPU_Core[cores];
             for(int i = 0; i < coreSim.length;i++){
-                coreSim[i] = new CPU_Core(); // 
+                coreSim[i] = new CPU_Core(); 
             }
             
             // Next we handle L1 caches, not shared
@@ -67,11 +67,11 @@ public class CacheRun {
             }
             
             // Now do the work for Level 2 caches
-            toConvert = configInput.readLine();
+            toConvert = configInput.readLine(); // fifth line
             L2 = Integer.parseInt(toConvert,16);
             if(L2 == 1){    // Shared Level 2 cache
                 toConvert = configInput.readLine();
-                configAssociativity = Integer.parseInt(toConvert,16);   // L2 Associativity
+                configAssociativity = Integer.parseInt(toConvert,16);   // L2 Associativity - 6th line in file
                 toConvert = configInput.readLine();
                 blockSize = Integer.parseInt(toConvert,16);             // L2 Block width
                 toConvert = configInput.readLine();
@@ -97,7 +97,7 @@ public class CacheRun {
             }
             
             // And now for the finale, the Level 3 cache
-            toConvert = configInput.readLine();
+            toConvert = configInput.readLine(); // ninth line
             L3 = Integer.parseInt(toConvert,16);
             if(L3 == 2){    // Shared Level three cache
                 toConvert = configInput.readLine();
@@ -148,6 +148,7 @@ public class CacheRun {
             if(L3 != 0){    // there is an L3 cache
                 System.out.println("L3 size: " + coreSim[i].getL3().getSize() + " bytes, Block width: " + coreSim[i].getL3().getBlockWidth() + " bytes");
             }
+            System.out.println();   // give a space for readability
         }
         
         // Commented code below may be used for testing purposes, to print the INVALID cache state
@@ -155,7 +156,7 @@ public class CacheRun {
         //cacheSim.printCache();  // Print the initial invalid state of the cache
 
         // Open our file containing data to be processed
-        File file = new File("trace1.txt");
+        File file = new File("javaFloatOne.txt");
         BufferedReader read = null;
         try {
             read = new BufferedReader(new FileReader(file)); // Create our reader
@@ -173,7 +174,7 @@ public class CacheRun {
         try {
             while ((line = read.readLine()) != null) { // Read while there is something to be read
                 // convert hex string to int for storage in the cache
-                int i = Integer.parseInt(line,16);
+                int i = Integer.parseInt(line,16); // I thought I'd have to change this for 32 bit hex numbers, but this should still work
                 n = rand.nextInt(cores);    // Random number between 0 (inclusive) and the # of cores (exclusive)
                                             // etc. if we have 6 cores, random # from 0 - 5
                 // To process the data, a simulated clock cycle is used
@@ -224,6 +225,7 @@ public class CacheRun {
             if(L3 != 0){    // only print if there is an L3 cache
                 System.out.println("L3: Accesses: " + coreSim[i].getL3().accesses + " Hits: " + coreSim[i].getL3().hits);
             }
+            System.out.println();
         }
 
     }

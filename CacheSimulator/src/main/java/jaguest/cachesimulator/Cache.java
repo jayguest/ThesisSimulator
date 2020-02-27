@@ -5,14 +5,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 // TODO: 
-// Fix current status by assignment specs (LRU check)
-// Add cache levels (L1, L2, L3)funtionality
-// Implement multi-core / threading
-// Add functionality to choose which levels are shared between cores/threads
 //  - latency via delay
-//  - latency via counter
-// Need to also implement a main memory class (as accurate as possible / slow)
-// Read JSON configuration file for setup/layout - using .txt for now
+//  - latency via counters
 
 
 /**
@@ -22,15 +16,11 @@ import java.util.Scanner;
  */
 public class Cache {
 
-    // TODO: Add cache size variable
-    // Attribute variables
-    // TODO: Calculate # of blocks by the cache size
     private int SIZE; // A variable that will be set based on input
     private int BLOCKS; // All begin in INVALID state
-    // TODO: This will probably something set in the JSON config file
-    private int BLOCK_WIDTH; // 1 byte wide, no offset bits
+    private int BLOCK_WIDTH; // 1 byte wide, no offset bits default
     private int associativity; // e.g. 4-way (4), 16-way (16)
-    // options will be 1,2,4,8,16
+    // options will be 1,2,4,8,16 up to # of blocks
 
     // Runtime counter variables
     public int accesses;
@@ -114,11 +104,11 @@ public class Cache {
             tag = num; // Whole number is the tag
         }
         else if(this.associativity == 8){
-            tag = GETBITS(num,2,32);
-            index = GETBITS(num,0,0);         
+            tag = GETBITS(num,2,31);
+            index = GETBITS(num,0,1);         
         }else{
             index = GETBITS(num,0,this.indexBits-1); // pull index from num
-            tag = GETBITS(num,this.indexBits,32); // pull tag from num
+            tag = GETBITS(num,this.indexBits,31); // pull tag from num
         }
         
         
