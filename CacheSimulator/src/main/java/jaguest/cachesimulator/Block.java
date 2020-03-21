@@ -3,6 +3,10 @@ package jaguest.cachesimulator;
 /**
  * Class defining the block object which the Cache
  * will consist multiples of.
+ * 
+ * For the purposes of this thesis project, all addresses stored in
+ * a blocks are going to be 32 bit addresses
+ * 
  * @author Jason Guest
  * @version 1.0
  */

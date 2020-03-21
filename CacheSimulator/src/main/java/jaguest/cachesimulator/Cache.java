@@ -1,18 +1,16 @@
 package jaguest.cachesimulator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Scanner;
 
-// TODO: 
-//  - latency via delay
-//  - latency via counters
-
+// TODO: Add some latency counters for convenience in showing performance gains
 
 /**
- * Cache class defining the structure of the Cache implementation
+ * Cache class defining the structure which the simulated cache uses to hold tags and values.
+ * This specific implementation uses only tags and values, and not a valid or "dirty" bit.
  * @author Jason Guest
- * @verison 2.0
+ * @verison 2.1
  */
 public class Cache {
 
@@ -30,8 +28,9 @@ public class Cache {
     private Block[][] sets; // set of blocks, length determined by associativity
     private int indexBits; // Maps to the number of sets
 
-    // LRU check queue
-    private ArrayList<int[]> LRU; // This implementation may change
+    // LRU data structure
+    public HashMap<Integer, LinkedList> LRU; // Hashtable is sized to have spaces for each set or line in the cache
+    // The table will hold < set #, list of blocks in set >
 
     /**
      * Bit extraction method
@@ -56,6 +55,7 @@ public class Cache {
      * Main Cache constructor
      * @param associativity is the defined associativity from user input
      * @param blockSize is the defined block width from input 
+     * @param cacheSize is the size of the cache in bytes
      * return a new Cache object
      */
     public Cache(int associativity,int blockSize,int cacheSize){
@@ -67,7 +67,7 @@ public class Cache {
         
         // Perform value checks for provided input
         if(associativity > this.BLOCKS){
-            System.out.println("Thee associativity cannot be greater than the # of blocks");
+            System.out.println("The associativity cannot be greater than the # of blocks");
             System.out.println("Blocks available: "+ this.BLOCKS +", Please choose associativity:");
             Scanner scan = new Scanner(System.in);  // Take input
             while(this.associativity > this.BLOCKS){
@@ -75,16 +75,25 @@ public class Cache {
             }
         }
         
+        // Set up te LRU hashtable and populate with indeces and linked lists
+        this.LRU = new HashMap(BLOCKS / associativity); // defines the size to be equal to the # of sets
+        for(int i = 0;i < (BLOCKS / associativity);i++){ // iterate over # of sets
+            this.LRU.put(i,new LinkedList<Integer>()); // populate the hashtable with lists associated with a key for each set number
+        }
+        
         this.sets = new Block[BLOCKS/associativity][associativity]; // Creation of sets array
         for(int i = 0;i < sets.length;i++){
             for(int j = 0;j < sets[i].length;j++){
-                sets[i][j] = new Block(12498); // initialize to INVL
-                // 12498 selected as it is a number very unlikely to be a value used
+                this.sets[i][j] = new Block(12498); // initialize to INVL
+                // 12498 selected as it is a number unlikely to be a value used
+                this.LRU.get(i).add(j); // will add the block number to list
+                
+                // now both the cache and the LRU hashtable should be fully populated with initial INVL values after nested loop ends
             }
         }
         this.indexBits = (int)(Math.log(sets.length)/Math.log(2)); // index mapping to each set
         // System.out.println(this.indexBits); // For testing purposes
-        this.LRU = new ArrayList<>(); // Declare our 'queue' for LRU
+        
     }
 
     /**
@@ -113,27 +122,20 @@ public class Cache {
         
         
         int check = this.hits;
-        int position = 0;
         for(int i = 0;i < sets[index].length;i++){
-            if(sets[index][i].getTag() == tag){ // check each tag in sets
+            if(sets[index][i].getTag() == tag){ // check each tag in sets for a hit
                 this.hits++; // inc hit if we find the tag we are looking for
                 //hitUpdate(index,i); // update the LRU queue
                 return 1;
             }
         }
-        if(check == this.hits){ // # of hits hasn't changed, item not in cache, miss
+        if(check == this.hits){ // # of hits hasn't changed, so the item is not in cache, miss
             insert(tag,index); // add the item to the cache, hopefully it'll hit next time
-            for(int i = 0;i < this.sets[index].length;i++){
-                if(sets[index][i].getTag() == tag){
-                    position = i; // Get the specific block written to
-                }
-            }
-            update(index,position); // update LRU with the block coordinate
-            // We only update LRU on a miss
-            // Send a return value to check the other levels of cache
-            return 0;
+                               // LRU hashtable is updated in the insert function
+            return 0; // return miss value
         }
-        return 0;
+        
+        return 0; // miss is the default return value
     }
 
     /**
@@ -143,50 +145,19 @@ public class Cache {
      */
     public void insert(int tag,int index){
         
-        // favor the INVL spots first, so we should check for them first
-        for(int i = 0;i < sets[index].length;i++){
-            if (sets[index][i].getTag() == 12498) {
-                sets[index][i].setTag(tag); // insert the tag
-                update(index,i); // update LRU for the block write
-
+        // favor the INVL spots first
+        for (Block set : sets[index]) {
+            if (set.getTag() == 12498) {
+                set.setTag(tag); // insert the tag over the INVL slot
                 return; // done once we've inserted the tag
             }
-
         }
-
         // If we haven't inserted over an INVALID, we run LRU check
-        for(int j = 0;j < LRU.size();j++){ // iterate starting from least recently used
-            if(index == LRU.get(j)[0]){ // index matches the LRU block we found
-                sets[index][LRU.get(j)[1]].setTag(tag); // LRU.get(j)[1] is the block position
-            }
-        }
-    }
-
-    /**
-     * Method keeping track of the LRU queue additions
-     * LRU holds 'coordinates' for each block in the cache
-     * @param index is the index bit
-     * @param position is the specific block
-     */
-    public void addToQueue(int index,int position){
-        int[] coord = {index,position};
-        this.LRU.add(coord);
-    }
-
-    /**
-     * Method to update the LRU queue when there is a hit
-     * @param index is the index map to the set
-     * @param position is the specific block
-     */
-    public void update(int index,int position){
-        int[] coord = {index,position};
-        for(int i = 0;i < LRU.size();i++){
-            if(Arrays.equals(LRU.get(i), coord)){ //find the miss tag
-                LRU.remove(i);  // index found, remove from list
-                // Update the queue
-                LRU.add(coord); // add it back to the end of the list
-            }
-        }
+        // The provided index is the key we will use to get to the list we want
+        Integer whereInsert = (Integer)this.LRU.get(index).pollFirst(); // find the least recently used block, get and remove it from the list
+                                                                        // will be first item in the linked list associated with the key: index
+        this.LRU.get(index).addLast(whereInsert); // add the chosen block index to the most recently used slot in the list (update list)
+        this.sets[index][whereInsert].setTag(tag); // insert into the block least recently used
     }
 
     /**
