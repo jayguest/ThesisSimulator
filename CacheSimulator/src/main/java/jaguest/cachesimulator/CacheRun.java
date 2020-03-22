@@ -156,7 +156,7 @@ public class CacheRun {
         //cacheSim.printCache();  // Print the initial invalid state of the cache
 
         // Open our file containing data to be processed
-        File file = new File("javaFloatOne.txt");
+        File file = new File("javaDoubleOne.txt");
         BufferedReader read = null;
         try {
             read = new BufferedReader(new FileReader(file)); // Create our reader

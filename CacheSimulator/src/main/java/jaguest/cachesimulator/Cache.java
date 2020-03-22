@@ -18,6 +18,7 @@ public class Cache {
     private int BLOCKS; // All begin in INVALID state
     private int BLOCK_WIDTH; // 1 byte wide, no offset bits default
     private int associativity; // e.g. 4-way (4), 16-way (16)
+    private int numSets;
     // options will be 1,2,4,8,16 up to # of blocks
 
     // Runtime counter variables
@@ -61,9 +62,10 @@ public class Cache {
     public Cache(int associativity,int blockSize,int cacheSize){
         this.SIZE = cacheSize;                  // Initialize cache size
         this.BLOCKS = cacheSize / blockSize;    // Find our number of blocks
-        this.BLOCK_WIDTH = blockSize;           // Initialize block width
+        this.BLOCK_WIDTH = blockSize;           // Initialize block width - should be 32 bits or 4 bytes (a word) for thesis purposes
         this.hits = 0;                          // Initialize hits to 0
         this.associativity = associativity;     // Initialize associativity
+        this.numSets = (this.SIZE) / (this.BLOCK_WIDTH * this.associativity);
         
         // Perform value checks for provided input
         if(associativity > this.BLOCKS){
@@ -81,7 +83,7 @@ public class Cache {
             this.LRU.put(i,new LinkedList<Integer>()); // populate the hashtable with lists associated with a key for each set number
         }
         
-        this.sets = new Block[BLOCKS/associativity][associativity]; // Creation of sets array
+        this.sets = new Block[this.numSets][associativity]; // Creation of sets array
         for(int i = 0;i < sets.length;i++){
             for(int j = 0;j < sets[i].length;j++){
                 this.sets[i][j] = new Block(12498); // initialize to INVL
@@ -91,7 +93,7 @@ public class Cache {
                 // now both the cache and the LRU hashtable should be fully populated with initial INVL values after nested loop ends
             }
         }
-        this.indexBits = (int)(Math.log(sets.length)/Math.log(2)); // index mapping to each set
+        this.indexBits = (int)(Math.log(this.numSets)/Math.log(2)); // index mapping to each set
         // System.out.println(this.indexBits); // For testing purposes
         
     }
@@ -106,18 +108,16 @@ public class Cache {
 
         // 16 block cache will have 2^n = 16 => 4 bits for the index
         // the rest will be for the tag
+        int offsetBits = (int)(Math.log(this.BLOCK_WIDTH)/Math.log(2));
         this.accesses++;
         int index = 0;
         int tag;
-        if(this.associativity == 16){ // no index bits required, it's one set
-            tag = num; // Whole number is the tag
-        }
-        else if(this.associativity == 8){
-            tag = GETBITS(num,2,31);
-            index = GETBITS(num,0,1);         
+        
+        if(this.associativity == this.BLOCKS){ // no index bits required, it's one set
+            tag = GETBITS(num, offsetBits, 31); // fully associatvive, no set index
         }else{
-            index = GETBITS(num,0,this.indexBits-1); // pull index from num
-            tag = GETBITS(num,this.indexBits,31); // pull tag from num
+            index = GETBITS(num,offsetBits,offsetBits + this.indexBits-1); // pull index from num
+            tag = GETBITS(num,offsetBits + this.indexBits,31); // pull tag from num
         }
         
         
