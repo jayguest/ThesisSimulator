@@ -82,7 +82,7 @@ public class CacheRun {
                     coreSim[i].setL2(levelTwo); // Initialize all Level two caches
                     coreSim[i].setNumLevels(2);
                 }
-            }else{  // Level two cache is not shared
+            }else if(L2 == 0){  // Level two cache is not shared
                 // we will have input for L2 sizes enough for each core by assumption
                 for(int i = 0; i < coreSim.length;i++){ // iterate to initialize level two cache
                     toConvert = configInput.readLine();
@@ -94,6 +94,8 @@ public class CacheRun {
                     coreSim[i].setL2(new Cache(configAssociativity,blockSize,cacheSize));
                     coreSim[i].setNumLevels(2);
                 }
+            }else{ // No L2 cache
+                // do nothing, no L2 cache
             }
             
             // And now for the finale, the Level 3 cache
@@ -144,7 +146,9 @@ public class CacheRun {
         for(int i = 0;i < cores;i++){   // Display the specs of each core
             System.out.println("Core " + i + ":");
             System.out.println("L1 size: " + coreSim[i].getL1().getSize() + " bytes, Block width: " + coreSim[i].getL1().getBlockWidth() + " bytes");
-            System.out.println("L2 size: " + coreSim[i].getL2().getSize() + " bytes, Block width: " + coreSim[i].getL2().getBlockWidth() + " bytes");
+            if((L2 == 1) || (L2 == 0)){ // there is L2 cache
+                System.out.println("L2 size: " + coreSim[i].getL2().getSize() + " bytes, Block width: " + coreSim[i].getL2().getBlockWidth() + " bytes");
+            }
             if(L3 != 0){    // there is an L3 cache
                 System.out.println("L3 size: " + coreSim[i].getL3().getSize() + " bytes, Block width: " + coreSim[i].getL3().getBlockWidth() + " bytes");
             }
@@ -152,11 +156,12 @@ public class CacheRun {
         }
         
         // Commented code below may be used for testing purposes, to print the INVALID cache state
-        //System.out.println("Initial cache state:");
+//        System.out.println("Initial cache state:");
+//        coreSim[0].getL1().printCache();
         //cacheSim.printCache();  // Print the initial invalid state of the cache
 
         // Open our file containing data to be processed
-        File file = new File("javaDoubleOne.txt");
+        File file = new File("javaFloatOne.txt");
         BufferedReader read = null;
         try {
             read = new BufferedReader(new FileReader(file)); // Create our reader
@@ -221,10 +226,13 @@ public class CacheRun {
         for(int i = 0;i < cores;i++){
             System.out.println("Core " + i + ": ");
             System.out.println("L1: Accesses: " + coreSim[i].getL1().accesses + " Hits: " + coreSim[i].getL1().hits);
-            System.out.println("L2: Accesses: " + coreSim[i].getL2().accesses + " Hits: " + coreSim[i].getL2().hits);
+            if((L2 == 1) || (L2 == 0)){
+                 System.out.println("L2: Accesses: " + coreSim[i].getL2().accesses + " Hits: " + coreSim[i].getL2().hits);
+            }
             if(L3 != 0){    // only print if there is an L3 cache
                 System.out.println("L3: Accesses: " + coreSim[i].getL3().accesses + " Hits: " + coreSim[i].getL3().hits);
             }
+//            coreSim[0].getL1().printCache();
             System.out.println();
         }
 
